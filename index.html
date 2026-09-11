@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Snowboard LEDs</title>
+  <style>
+    body { font-family: sans-serif; background: #121212; color: #fff; text-align: center; padding: 20px; }
+    button { width: 100%; max-width: 300px; padding: 15px; margin: 10px 0; font-size: 1.1rem; border: none; border-radius: 8px; cursor: pointer; }
+    .connect-btn { background: #007bff; color: white; }
+    .red { background: #ff3b30; color: white; }
+    .blue { background: #007aff; color: white; }
+    .green { background: #34c759; color: white; }
+    .off { background: #444; color: white; }
+  </style>
+</head>
+<body>
+  <h2>🏂 Snowboard LED Control</h2>
+  <button class="connect-btn" onclick="connectBLE()">1. Verbind via Bluetooth</button>
+  <hr style="margin: 20px auto; max-width: 300px; border-color: #333;">
+  <button class="red" onclick="sendColor(255, 0, 0)">Rood</button>
+  <button class="blue" onclick="sendColor(0, 100, 255)">Blauw</button>
+  <button class="green" onclick="sendColor(0, 255, 50)">Groen</button>
+  <button class="off" onclick="sendColor(0, 0, 0)">Uit</button>
+
+  <script>
+    const SERVICE_UUID = "4fafc201-1fb5-459e-8fcc-c5c9c331914b";
+    const CHAR_UUID    = "beb5483e-36e1-4688-b7f5-ea07361b26a8";
+    let ledChar = null;
+
+    async function connectBLE() {
+      try {
+        const device = await navigator.bluetooth.requestDevice({
+          filters: [{ name: "Snowboard-LED" }],
+          optionalServices: [SERVICE_UUID]
+        });
+        const server = await device.gatt.connect();
+        const service = await server.getPrimaryService(SERVICE_UUID);
+        ledChar = await service.getCharacteristic(CHAR_UUID);
+        alert("Verbonden met Snowboard!");
+      } catch (err) {
+        alert("Fout bij verbinden: " + err);
+      }
+    }
+
+    async function sendColor(r, g, b) {
+      if (!ledChar) {
+        alert("Verbind eerst met Bluetooth!");
+        return;
+      }
+      const data = new Uint8Array([r, g, b]);
+      await ledChar.writeValue(data);
+    }
+  </script>
+</body>
+</html>
