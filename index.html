@@ -50,7 +50,7 @@
     .dot { width: 7px; height: 7px; border-radius: 50%; background: #ea4335; }
     .connected .dot { background: #3fb950; }
 
-    /* Visualizer */
+    /* Visualizer (slanker en 20% verkleind via scale) */
     .stage {
       display: flex;
       justify-content: center;
@@ -90,7 +90,7 @@
       width: 5px;
       height: 100%;
       display: flex;
-      flex-direction: column-reverse;
+      flex-direction: column-reverse; /* 0 onderaan, 59 bovenaan */
       justify-content: space-between;
       z-index: 2;
     }
@@ -160,7 +160,7 @@
       background: rgba(0,240,255,0.08);
     }
 
-    /* Color Wheel */
+    /* Color Wheel Container */
     .wheel-section {
       display: flex;
       flex-direction: column;
@@ -250,7 +250,7 @@
       <button class="tab-btn" id="tabRight" onclick="setTarget(2)">R-Zijde</button>
     </div>
 
-    <!-- Modus Knoppen (6 modi) -->
+    <!-- Modus Knoppen (6 Modi) -->
     <div class="modes-grid">
       <button class="btn-mode active" id="m0" onclick="selectMode(0)">Vast</button>
       <button class="btn-mode" id="m1" onclick="selectMode(1)">🌈 Rainbow</button>
@@ -260,7 +260,7 @@
       <button class="btn-mode" id="m6" onclick="selectMode(6)">❄️ Snowfall</button>
     </div>
 
-    <!-- Color Wheel (alleen bij Vast & Strepen) -->
+    <!-- Color Wheel (zichtbaar bij Vast, Strepen én Snowfall) -->
     <div class="wheel-section" id="wheelWrapper">
       <div class="wheel-container" id="wheelBox">
         <canvas id="colorWheel" width="170" height="170"></canvas>
@@ -323,7 +323,7 @@
     let brightness = 150;
     let currentColor = { r: 0, g: 240, b: 255 };
 
-    /* Color Wheel */
+    /* --- CANVAS COLOR WHEEL --- */
     const canvas = document.getElementById("colorWheel");
     const ctx = canvas.getContext("2d");
     const cursor = document.getElementById("wheelCursor");
@@ -417,7 +417,7 @@
 
     drawColorWheel();
 
-    /* Bediening */
+    /* --- BEDIENING --- */
     function setTarget(t) {
       currentTarget = t;
       document.getElementById("tabClone").classList.toggle("active", t === 0);
@@ -438,8 +438,8 @@
         if (btn) btn.classList.toggle("active", i === m);
       });
 
-      // Alleen color wheel tonen bij Vast (0) en Strepen (2)
-      document.getElementById("wheelWrapper").style.display = (m === 0 || m === 2) ? "flex" : "none";
+      // Color wheel zichtbaar bij Vast (0), Strepen (2) én Snowfall (6)
+      document.getElementById("wheelWrapper").style.display = (m === 0 || m === 2 || m === 6) ? "flex" : "none";
       // Snelheid tonen bij alle dynamische modi
       document.getElementById("speedRow").style.display = (m !== 0 && m !== 3) ? "flex" : "none";
       // Lengte alleen bij Strepen (2)
@@ -485,7 +485,7 @@
       sendBLE(active.mode, active.r, active.g, active.b, brightness, active.speed, active.tail, currentTarget);
     }
 
-    /* Rendering Visualizer */
+    /* --- RENDERING VISUALIZER --- */
     function wheelVirtual(pos) {
       if (pos < 85) return [pos * 3, 255 - pos * 3, 0];
       if (pos < 170) { pos -= 85; return [255 - pos * 3, 0, pos * 3]; }
@@ -506,7 +506,7 @@
         });
         return;
       }
-      if (cfg.mode === 1) { // Rainbow
+      if (cfg.mode === 1) { // Rainbow synchroon met firmware
         const offset = (now * (cfg.speed * 0.007)) % 256;
         for (let i = 0; i < 60; i++) {
           const hue = Math.floor(i * 256 / 60 + offset) & 0xFF;
@@ -557,7 +557,7 @@
         });
         return;
       }
-      if (cfg.mode === 6) { // Snowfall / Twinkle
+      if (cfg.mode === 6) { // Snowfall met gekozen kleur
         if (Math.random() * (105 - cfg.speed) < 6) {
           const p = Math.floor(Math.random() * 60);
           sparkles[p] = 255;
@@ -565,9 +565,14 @@
         for (let i = 0; i < 60; i++) {
           if (sparkles[i] > 10) sparkles[i] -= 10;
           else sparkles[i] = 0;
-          const val = sparkles[i] * bScale;
-          ledArray[i].style.background = `rgb(${val},${val},${val})`;
-          ledArray[i].style.boxShadow = sparkles[i] > 20 ? `0 0 6px rgba(255,255,255,${val / 255})` : "none";
+
+          const fade = (sparkles[i] / 255.0) * bScale;
+          const r = Math.round(cfg.r * fade);
+          const g = Math.round(cfg.g * fade);
+          const b = Math.round(cfg.b * fade);
+
+          ledArray[i].style.background = `rgb(${r},${g},${b})`;
+          ledArray[i].style.boxShadow = sparkles[i] > 20 ? `0 0 6px rgba(${cfg.r},${cfg.g},${cfg.b},${fade})` : "none";
         }
         return;
       }
@@ -581,7 +586,7 @@
     }
     requestAnimationFrame(animate);
 
-    /* BLE */
+    /* --- BLUETOOTH LOW ENERGY --- */
     async function connectBLE() {
       try {
         const device = await navigator.bluetooth.requestDevice({
