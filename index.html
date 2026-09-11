@@ -21,7 +21,7 @@
       flex-direction: column;
       align-items: center;
       min-height: 100vh;
-      padding: 10px 14px;
+      padding: 10px 14px 24px;
       overflow-x: hidden;
     }
 
@@ -50,22 +50,22 @@
     .dot { width: 7px; height: 7px; border-radius: 50%; background: #ea4335; }
     .connected .dot { background: #3fb950; }
 
-    /* Visualizer Container - 20% verkleind via zoom/scale */
+    /* Visualizer - 20% verkleind */
     .stage {
       display: flex;
       justify-content: center;
       align-items: center;
-      height: 345px; /* Compacte viewport */
-      margin-bottom: 6px;
+      height: 345px;
+      margin-bottom: 4px;
     }
     .board-wrapper {
-      transform: scale(0.8); /* 20% verkleind */
+      transform: scale(0.8);
       transform-origin: center center;
     }
     .snowboard {
       position: relative;
-      width: 88px;   /* Slanker */
-      height: 410px; /* Langere ratio */
+      width: 88px;
+      height: 410px;
       background: linear-gradient(180deg, #1c212a 0%, #0d1117 50%, #1c212a 100%);
       border-radius: 36px / 75px;
       box-shadow: 0 12px 30px rgba(0,0,0,0.8), inset 0 0 0 1.5px rgba(255,255,255,0.06);
@@ -90,7 +90,7 @@
       width: 5px;
       height: 100%;
       display: flex;
-      flex-direction: column-reverse; /* 0 onderaan, 59 bovenaan */
+      flex-direction: column-reverse;
       justify-content: space-between;
       z-index: 2;
     }
@@ -102,7 +102,7 @@
       box-shadow: 0 0 4px transparent;
     }
 
-    /* Controls Drawer */
+    /* Bedientab & panel */
     .panel {
       width: 100%;
       max-width: 380px;
@@ -115,7 +115,6 @@
       gap: 12px;
     }
 
-    /* Mode Selection Tabs (Clone vs Split) */
     .tab-bar {
       display: flex;
       background: #0d1117;
@@ -139,40 +138,6 @@
       color: var(--text);
     }
 
-    .row {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 10px;
-    }
-    .label { font-size: 0.8rem; color: var(--sub); font-weight: 500; }
-
-    input[type="range"] {
-      flex: 1;
-      accent-color: var(--accent);
-      height: 5px;
-      background: #232936;
-      border-radius: 3px;
-    }
-
-    .color-picker-box {
-      width: 38px;
-      height: 32px;
-      border-radius: 8px;
-      overflow: hidden;
-      border: 1px solid var(--border);
-      position: relative;
-    }
-    .color-picker-box input {
-      position: absolute;
-      top: -50%;
-      left: -50%;
-      width: 200%;
-      height: 200%;
-      cursor: pointer;
-      border: none;
-    }
-
     .modes-grid {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
@@ -194,6 +159,56 @@
       color: var(--accent);
       background: rgba(0,240,255,0.08);
     }
+
+    /* Color Wheel Container */
+    .wheel-section {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+      margin: 4px 0;
+    }
+    .wheel-container {
+      position: relative;
+      width: 180px;
+      height: 180px;
+      touch-action: none; /* Voorkomt scrollen tijdens draaien */
+    }
+    #colorWheel {
+      border-radius: 50%;
+      box-shadow: 0 4px 18px rgba(0,0,0,0.6);
+      cursor: crosshair;
+    }
+    .wheel-cursor {
+      position: absolute;
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      border: 2px solid #ffffff;
+      box-shadow: 0 0 8px rgba(0,0,0,0.8), inset 0 0 4px rgba(0,0,0,0.5);
+      pointer-events: none;
+      transform: translate(-50%, -50%);
+      left: 90px;
+      top: 90px;
+      background: #00f0ff;
+    }
+
+    .row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+    }
+    .label { font-size: 0.8rem; color: var(--sub); font-weight: 500; }
+
+    input[type="range"] {
+      flex: 1;
+      accent-color: var(--accent);
+      height: 5px;
+      background: #232936;
+      border-radius: 3px;
+    }
+
     .btn-off {
       background: rgba(234,67,53,0.12);
       border: 1px solid rgba(234,67,53,0.3);
@@ -230,7 +245,7 @@
   <div class="panel">
     <!-- Split / Clone Selector -->
     <div class="tab-bar">
-      <button class="tab-btn active" id="tabClone" onclick="setTarget(0)">🔗 Clone (Beide)</button>
+      <button class="tab-btn active" id="tabClone" onclick="setTarget(0)">🔗 Clone</button>
       <button class="tab-btn" id="tabLeft" onclick="setTarget(1)">L-Zijde</button>
       <button class="tab-btn" id="tabRight" onclick="setTarget(2)">R-Zijde</button>
     </div>
@@ -242,24 +257,29 @@
       <button class="btn-mode" id="m2" onclick="selectMode(2)">☄️ Strepen</button>
     </div>
 
-    <!-- Helderheid & Kleur -->
-    <div class="row">
-      <span class="label">Helderheid</span>
-      <input type="range" id="bright" min="0" max="255" value="150" oninput="syncSettings()">
-      <div class="color-picker-box">
-        <input type="color" id="picker" value="#00f0ff" onchange="syncSettings()">
+    <!-- Color Wheel -->
+    <div class="wheel-section" id="wheelWrapper">
+      <div class="wheel-container" id="wheelBox">
+        <canvas id="colorWheel" width="180" height="180"></canvas>
+        <div class="wheel-cursor" id="wheelCursor"></div>
       </div>
     </div>
 
-    <!-- Comet Opties (Dynamisch) -->
+    <!-- Helderheid Slider -->
+    <div class="row">
+      <span class="label">Helderheid</span>
+      <input type="range" id="bright" min="0" max="255" value="150" oninput="triggerSync()">
+    </div>
+
+    <!-- Comet Opties -->
     <div id="cometSettings" style="display: none; flex-direction: column; gap: 8px;">
       <div class="row">
         <span class="label">Snelheid</span>
-        <input type="range" id="speed" min="10" max="100" value="50" oninput="syncSettings()">
+        <input type="range" id="speed" min="10" max="100" value="50" oninput="triggerSync()">
       </div>
       <div class="row">
         <span class="label">Lengte</span>
-        <input type="range" id="tail" min="4" max="30" value="14" oninput="syncSettings()">
+        <input type="range" id="tail" min="4" max="30" value="14" oninput="triggerSync()">
       </div>
     </div>
 
@@ -271,7 +291,7 @@
     const CHAR_UUID    = "beb5483e-36e1-4688-b7f5-ea07361b26a8";
     let ledChar = null;
 
-    // DOM Leds opbouwen
+    // DOM Leds genereren
     const stripLEl = document.getElementById("stripL");
     const stripREl = document.getElementById("stripR");
     const ledsL = [], ledsR = [];
@@ -293,59 +313,177 @@
     let sideL = { mode: 0, r: 0, g: 240, b: 255, speed: 50, tail: 14 };
     let sideR = { mode: 0, r: 0, g: 240, b: 255, speed: 50, tail: 14 };
     let brightness = 150;
+    let currentColor = { r: 0, g: 240, b: 255 };
 
+    /* --- CANVAS COLOR WHEEL IMPLEMENTATIE --- */
+    const canvas = document.getElementById("colorWheel");
+    const ctx = canvas.getContext("2d");
+    const cursor = document.getElementById("wheelCursor");
+    const radius = canvas.width / 2;
+
+    function drawColorWheel() {
+      const image = ctx.createImageData(canvas.width, canvas.height);
+      const data = image.data;
+
+      for (let y = -radius; y < radius; y++) {
+        for (let x = -radius; x < radius; x++) {
+          const dist = Math.sqrt(x * x + y * y);
+          const index = ((y + radius) * canvas.width + (x + radius)) * 4;
+
+          if (dist <= radius) {
+            let angle = Math.atan2(y, x) * (180 / Math.PI) + 90;
+            if (angle < 0) angle += 360;
+
+            const sat = Math.min(dist / radius, 1.0);
+            const [r, g, b] = hslToRgb(angle / 360, sat, 0.5);
+
+            data[index]     = r;
+            data[index + 1] = g;
+            data[index + 2] = b;
+            data[index + 3] = 255;
+          } else {
+            data[index + 3] = 0; // Transparant buiten de cirkel
+          }
+        }
+      }
+      ctx.putImageData(image, 0, 0);
+    }
+
+    function hslToRgb(h, s, l) {
+      let r, g, b;
+      if (s === 0) {
+        r = g = b = l;
+      } else {
+        const hue2rgb = (p, q, t) => {
+          if (t < 0) t += 1;
+          if (t > 1) t -= 1;
+          if (t < 1/6) return p + (q - p) * 6 * t;
+          if (t < 1/2) return q;
+          if (t < 2/3) return p + (q - p) * (2/3 - t) * 6;
+          return p;
+        };
+        const q = l < 0.5 ? l * (1 + s) : l + s - l * s;
+        const p = 2 * l - q;
+        r = hue2rgb(p, q, h + 1/3);
+        g = hue2rgb(p, q, h);
+        b = hue2rgb(p, q, h - 1/3);
+      }
+      return [Math.round(r * 255), Math.round(g * 255), Math.round(b * 255)];
+    }
+
+    function handleWheelInput(e) {
+      const rect = canvas.getBoundingClientRect();
+      const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+      const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+
+      let dx = clientX - (rect.left + radius);
+      let dy = clientY - (rect.top + radius);
+      let dist = Math.sqrt(dx * dx + dy * dy);
+
+      // Klem positie vast binnen de cirkel
+      if (dist > radius) {
+        dx = (dx / dist) * radius;
+        dy = (dy / dist) * radius;
+        dist = radius;
+      }
+
+      // Cursor bijwerken
+      cursor.style.left = `${radius + dx}px`;
+      cursor.style.top  = `${radius + dy}px`;
+
+      // Kleur bepalen
+      let angle = Math.atan2(dy, dx) * (180 / Math.PI) + 90;
+      if (angle < 0) angle += 360;
+      const sat = dist / radius;
+      const [r, g, b] = hslToRgb(angle / 360, sat, 0.5);
+
+      currentColor = { r, g, b };
+      cursor.style.background = `rgb(${r},${g},${b})`;
+      triggerSync();
+    }
+
+    // Touch & muis events voor het color wheel
+    let isDragging = false;
+    const wheelBox = document.getElementById("wheelBox");
+
+    const startDrag = (e) => { isDragging = true; handleWheelInput(e); };
+    const doDrag    = (e) => { if (isDragging) handleWheelInput(e); };
+    const stopDrag  = () =>  { isDragging = false; };
+
+    wheelBox.addEventListener("mousedown", startDrag);
+    window.addEventListener("mousemove", doDrag);
+    window.addEventListener("mouseup", stopDrag);
+
+    wheelBox.addEventListener("touchstart", startDrag, { passive: false });
+    window.addEventListener("touchmove", doDrag, { passive: false });
+    window.addEventListener("touchend", stopDrag);
+
+    drawColorWheel();
+
+    /* --- BEDIENING & EFFECTEN LOGICA --- */
     function setTarget(t) {
       currentTarget = t;
       document.getElementById("tabClone").classList.toggle("active", t === 0);
       document.getElementById("tabLeft").classList.toggle("active", t === 1);
       document.getElementById("tabRight").classList.toggle("active", t === 2);
 
-      // UI updaten naar de actieve selectie
       const active = t === 2 ? sideR : sideL;
       selectMode(active.mode, false);
       document.getElementById("speed").value = active.speed;
       document.getElementById("tail").value = active.tail;
-      document.getElementById("picker").value = rgbToHex(active.r, active.g, active.b);
+      currentColor = { r: active.r, g: active.g, b: active.b };
+      cursor.style.background = `rgb(${active.r},${active.g},${active.b})`;
     }
 
     function selectMode(m, shouldSync = true) {
       [0, 1, 2].forEach(i => document.getElementById(`m${i}`).classList.toggle("active", i === m));
       document.getElementById("cometSettings").style.display = (m === 2) ? "flex" : "none";
-      if (shouldSync) syncSettings(m);
+      // Verberg color wheel alleen bij Rainbow
+      document.getElementById("wheelWrapper").style.display = (m === 1) ? "none" : "flex";
+      if (shouldSync) triggerSync(m);
     }
 
     function turnOff() {
-      selectMode(3);
+      triggerSync(3);
     }
 
-    function syncSettings(overrideMode = null) {
+    // Throttling zodat snelle touch-events de Bluetooth-verbinding niet vloeden
+    let lastSend = 0;
+    let syncTimeout = null;
+
+    function triggerSync(overrideMode = null) {
+      const now = Date.now();
+      if (now - lastSend > 50) { // Max 20 BLE-commando's per seconde
+        lastSend = now;
+        executeSync(overrideMode);
+      } else {
+        clearTimeout(syncTimeout);
+        syncTimeout = setTimeout(() => executeSync(overrideMode), 50);
+      }
+    }
+
+    function executeSync(overrideMode = null) {
       brightness = parseInt(document.getElementById("bright").value);
-      const hex = document.getElementById("picker").value;
-      const r = parseInt(hex.slice(1,3), 16);
-      const g = parseInt(hex.slice(3,5), 16);
-      const b = parseInt(hex.slice(5,7), 16);
       const spd = parseInt(document.getElementById("speed").value);
       const tail = parseInt(document.getElementById("tail").value);
 
       const apply = (cfg) => {
         if (overrideMode !== null) cfg.mode = overrideMode;
-        cfg.r = r; cfg.g = g; cfg.b = b;
-        cfg.speed = spd; cfg.tail = tail;
+        cfg.r = currentColor.r;
+        cfg.g = currentColor.g;
+        cfg.b = currentColor.b;
+        cfg.speed = spd;
+        cfg.tail = tail;
       };
 
       if (currentTarget === 0 || currentTarget === 1) apply(sideL);
       if (currentTarget === 0 || currentTarget === 2) apply(sideR);
 
-      // Verzend naar BLE
       const active = (currentTarget === 2) ? sideR : sideL;
       sendBLE(active.mode, active.r, active.g, active.b, brightness, active.speed, active.tail, currentTarget);
     }
 
-    function rgbToHex(r, g, b) {
-      return "#" + [r, g, b].map(x => x.toString(16).padStart(2, '0')).join('');
-    }
-
-    /* Render Lus voor realistische 2D visualizer */
+    /* --- REALISTISCHE RENDER LUS --- */
     function wheel(pos) {
       pos = 255 - pos;
       if (pos < 85) return [255 - pos * 3, 0, pos * 3];
@@ -381,7 +519,6 @@
       if (cfg.mode === 2) {
         ledArray.forEach(el => { el.style.background = "#000"; el.style.boxShadow = "none"; });
         const head = ((now * (cfg.speed * 0.002)) % (60 + cfg.tail));
-        // Van voor (59) naar achter (0)
         const headIdx = 59 - Math.floor(head) + cfg.tail;
 
         for (let t = 0; t < cfg.tail; t++) {
@@ -403,7 +540,7 @@
     }
     requestAnimationFrame(animate);
 
-    /* BLE Verbinding */
+    /* --- BLUETOOTH LOW ENERGY --- */
     async function connectBLE() {
       try {
         const device = await navigator.bluetooth.requestDevice({
@@ -416,7 +553,7 @@
 
         document.getElementById("bleBtn").classList.add("connected");
         document.getElementById("bleStatus").innerText = "Verbonden";
-        syncSettings();
+        triggerSync();
       } catch (err) {
         console.error("BLE Error:", err);
       }
