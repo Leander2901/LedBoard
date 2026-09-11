@@ -506,7 +506,8 @@
         return;
       }
       if (cfg.mode === 1) {
-        const offset = (now * (cfg.speed * 0.05)) % 256;
+        // Aangepast naar 0.007 i.p.v. 0.05 zodat de visualizer exact gelijk loopt
+        const offset = (now * (cfg.speed * 0.007)) % 256;
         for (let i = 0; i < 60; i++) {
           const hue = Math.floor(i * 256 / 60 + offset) & 0xFF;
           const [r, g, b] = wheelVirtual(hue);
