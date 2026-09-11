@@ -21,7 +21,7 @@
       flex-direction: column;
       align-items: center;
       min-height: 100vh;
-      padding: 10px 14px 24px;
+      padding: 8px 14px 20px;
       overflow-x: hidden;
     }
 
@@ -31,14 +31,14 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
-      margin-bottom: 6px;
+      margin-bottom: 4px;
     }
-    .header h1 { font-size: 1rem; font-weight: 700; letter-spacing: 0.5px; }
+    .header h1 { font-size: 0.95rem; font-weight: 700; letter-spacing: 0.5px; }
     .btn-ble {
       background: #1e2430;
       color: #cbd5e1;
       border: 1px solid var(--border);
-      padding: 6px 12px;
+      padding: 5px 12px;
       border-radius: 20px;
       font-size: 0.75rem;
       cursor: pointer;
@@ -55,11 +55,11 @@
       display: flex;
       justify-content: center;
       align-items: center;
-      height: 345px;
-      margin-bottom: 4px;
+      height: 335px;
+      margin-bottom: 2px;
     }
     .board-wrapper {
-      transform: scale(0.8);
+      transform: scale(0.78);
       transform-origin: center center;
     }
     .snowboard {
@@ -109,10 +109,10 @@
       background: var(--card);
       border: 1px solid var(--border);
       border-radius: 16px;
-      padding: 14px;
+      padding: 12px 14px;
       display: flex;
       flex-direction: column;
-      gap: 12px;
+      gap: 10px;
     }
 
     .tab-bar {
@@ -124,7 +124,7 @@
     }
     .tab-btn {
       flex: 1;
-      padding: 7px 0;
+      padding: 6px 0;
       font-size: 0.78rem;
       font-weight: 600;
       border: none;
@@ -141,15 +141,15 @@
     .modes-grid {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
-      gap: 8px;
+      gap: 6px;
     }
     .btn-mode {
       background: #1b202a;
       border: 1px solid var(--border);
       color: var(--text);
-      padding: 10px 4px;
-      border-radius: 10px;
-      font-size: 0.75rem;
+      padding: 9px 4px;
+      border-radius: 8px;
+      font-size: 0.72rem;
       font-weight: 600;
       cursor: pointer;
       text-align: center;
@@ -165,13 +165,13 @@
       display: flex;
       flex-direction: column;
       align-items: center;
-      gap: 8px;
-      margin: 4px 0;
+      gap: 6px;
+      margin: 2px 0;
     }
     .wheel-container {
       position: relative;
-      width: 180px;
-      height: 180px;
+      width: 170px;
+      height: 170px;
       touch-action: none;
     }
     #colorWheel {
@@ -181,15 +181,15 @@
     }
     .wheel-cursor {
       position: absolute;
-      width: 22px;
-      height: 22px;
+      width: 20px;
+      height: 20px;
       border-radius: 50%;
       border: 2px solid #ffffff;
-      box-shadow: 0 0 8px rgba(0,0,0,0.8), inset 0 0 4px rgba(0,0,0,0.5);
+      box-shadow: 0 0 8px rgba(0,0,0,0.8);
       pointer-events: none;
       transform: translate(-50%, -50%);
-      left: 90px;
-      top: 90px;
+      left: 85px;
+      top: 85px;
       background: #00f0ff;
     }
 
@@ -214,8 +214,8 @@
       border: 1px solid rgba(234,67,53,0.3);
       color: #ff6b6b;
       padding: 8px;
-      border-radius: 10px;
-      font-size: 0.78rem;
+      border-radius: 8px;
+      font-size: 0.75rem;
       font-weight: 600;
       cursor: pointer;
     }
@@ -250,17 +250,20 @@
       <button class="tab-btn" id="tabRight" onclick="setTarget(2)">R-Zijde</button>
     </div>
 
-    <!-- Modus Knoppen -->
+    <!-- Modus Knoppen (6 modi) -->
     <div class="modes-grid">
       <button class="btn-mode active" id="m0" onclick="selectMode(0)">Vast</button>
       <button class="btn-mode" id="m1" onclick="selectMode(1)">🌈 Rainbow</button>
       <button class="btn-mode" id="m2" onclick="selectMode(2)">☄️ Strepen</button>
+      <button class="btn-mode" id="m4" onclick="selectMode(4)">🦘 7-Jump</button>
+      <button class="btn-mode" id="m5" onclick="selectMode(5)">🌊 7-Fade</button>
+      <button class="btn-mode" id="m6" onclick="selectMode(6)">❄️ Snowfall</button>
     </div>
 
-    <!-- Color Wheel (verborgen bij Rainbow) -->
+    <!-- Color Wheel (alleen bij Vast & Strepen) -->
     <div class="wheel-section" id="wheelWrapper">
       <div class="wheel-container" id="wheelBox">
-        <canvas id="colorWheel" width="180" height="180"></canvas>
+        <canvas id="colorWheel" width="170" height="170"></canvas>
         <div class="wheel-cursor" id="wheelCursor"></div>
       </div>
     </div>
@@ -271,7 +274,7 @@
       <input type="range" id="bright" min="0" max="255" value="150" oninput="triggerSync()">
     </div>
 
-    <!-- Snelheid (zichtbaar bij Rainbow én Strepen) -->
+    <!-- Snelheid (zichtbaar bij geanimeerde modi) -->
     <div class="row" id="speedRow" style="display: none;">
       <span class="label">Snelheid</span>
       <input type="range" id="speed" min="5" max="100" value="50" oninput="triggerSync()">
@@ -291,9 +294,16 @@
     const CHAR_UUID    = "beb5483e-36e1-4688-b7f5-ea07361b26a8";
     let ledChar = null;
 
+    const PALETTE_7 = [
+      [255, 0, 0], [0, 255, 0], [0, 0, 255],
+      [255, 230, 0], [0, 240, 255], [255, 0, 200], [255, 255, 255]
+    ];
+
     const stripLEl = document.getElementById("stripL");
     const stripREl = document.getElementById("stripR");
     const ledsL = [], ledsR = [];
+    const vSparkL = new Array(60).fill(0);
+    const vSparkR = new Array(60).fill(0);
 
     for (let i = 0; i < 60; i++) {
       const dL = document.createElement("div");
@@ -313,7 +323,7 @@
     let brightness = 150;
     let currentColor = { r: 0, g: 240, b: 255 };
 
-    /* --- COLOR WHEEL --- */
+    /* Color Wheel */
     const canvas = document.getElementById("colorWheel");
     const ctx = canvas.getContext("2d");
     const cursor = document.getElementById("wheelCursor");
@@ -331,10 +341,8 @@
           if (dist <= radius) {
             let angle = Math.atan2(y, x) * (180 / Math.PI) + 90;
             if (angle < 0) angle += 360;
-
             const sat = Math.min(dist / radius, 1.0);
             const [r, g, b] = hslToRgb(angle / 360, sat, 0.5);
-
             data[index]     = r;
             data[index + 1] = g;
             data[index + 2] = b;
@@ -349,9 +357,7 @@
 
     function hslToRgb(h, s, l) {
       let r, g, b;
-      if (s === 0) {
-        r = g = b = l;
-      } else {
+      if (s === 0) { r = g = b = l; } else {
         const hue2rgb = (p, q, t) => {
           if (t < 0) t += 1;
           if (t > 1) t -= 1;
@@ -389,8 +395,7 @@
 
       let angle = Math.atan2(dy, dx) * (180 / Math.PI) + 90;
       if (angle < 0) angle += 360;
-      const sat = dist / radius;
-      const [r, g, b] = hslToRgb(angle / 360, sat, 0.5);
+      const [r, g, b] = hslToRgb(angle / 360, dist / radius, 0.5);
 
       currentColor = { r, g, b };
       cursor.style.background = `rgb(${r},${g},${b})`;
@@ -399,7 +404,6 @@
 
     let isDragging = false;
     const wheelBox = document.getElementById("wheelBox");
-
     const startDrag = (e) => { isDragging = true; handleWheelInput(e); };
     const doDrag    = (e) => { if (isDragging) handleWheelInput(e); };
     const stopDrag  = () =>  { isDragging = false; };
@@ -407,14 +411,13 @@
     wheelBox.addEventListener("mousedown", startDrag);
     window.addEventListener("mousemove", doDrag);
     window.addEventListener("mouseup", stopDrag);
-
     wheelBox.addEventListener("touchstart", startDrag, { passive: false });
     window.addEventListener("touchmove", doDrag, { passive: false });
     window.addEventListener("touchend", stopDrag);
 
     drawColorWheel();
 
-    /* --- BEDIENING --- */
+    /* Bediening */
     function setTarget(t) {
       currentTarget = t;
       document.getElementById("tabClone").classList.toggle("active", t === 0);
@@ -430,23 +433,22 @@
     }
 
     function selectMode(m, shouldSync = true) {
-      [0, 1, 2].forEach(i => document.getElementById(`m${i}`).classList.toggle("active", i === m));
-      
-      // Kleurenwiel verbergen bij Rainbow
-      document.getElementById("wheelWrapper").style.display = (m === 1) ? "none" : "flex";
-      
-      // Snelheid zichtbaar bij Rainbow én Strepen
-      document.getElementById("speedRow").style.display = (m === 1 || m === 2) ? "flex" : "none";
-      
-      // Lengte alleen bij Strepen
+      [0, 1, 2, 4, 5, 6].forEach(i => {
+        const btn = document.getElementById(`m${i}`);
+        if (btn) btn.classList.toggle("active", i === m);
+      });
+
+      // Alleen color wheel tonen bij Vast (0) en Strepen (2)
+      document.getElementById("wheelWrapper").style.display = (m === 0 || m === 2) ? "flex" : "none";
+      // Snelheid tonen bij alle dynamische modi
+      document.getElementById("speedRow").style.display = (m !== 0 && m !== 3) ? "flex" : "none";
+      // Lengte alleen bij Strepen (2)
       document.getElementById("tailRow").style.display = (m === 2) ? "flex" : "none";
 
       if (shouldSync) triggerSync(m);
     }
 
-    function turnOff() {
-      triggerSync(3);
-    }
+    function turnOff() { triggerSync(3); }
 
     let lastSend = 0;
     let syncTimeout = null;
@@ -483,14 +485,14 @@
       sendBLE(active.mode, active.r, active.g, active.b, brightness, active.speed, active.tail, currentTarget);
     }
 
-    /* --- VIRTUELE VISUALIZER --- */
+    /* Rendering Visualizer */
     function wheelVirtual(pos) {
       if (pos < 85) return [pos * 3, 255 - pos * 3, 0];
       if (pos < 170) { pos -= 85; return [255 - pos * 3, 0, pos * 3]; }
       pos -= 170; return [0, pos * 3, 255 - pos * 3];
     }
 
-    function renderVirtual(ledArray, cfg, now) {
+    function renderVirtual(ledArray, cfg, sparkles, now) {
       const bScale = brightness / 255;
       if (cfg.mode === 3) {
         ledArray.forEach(el => { el.style.background = "#000"; el.style.boxShadow = "none"; });
@@ -498,15 +500,13 @@
       }
       if (cfg.mode === 0) {
         const col = `rgb(${cfg.r * bScale},${cfg.g * bScale},${cfg.b * bScale})`;
-        const glow = `rgba(${cfg.r},${cfg.g},${cfg.b},${0.6 * bScale})`;
         ledArray.forEach(el => {
           el.style.background = col;
-          el.style.boxShadow = `0 0 5px ${glow}`;
+          el.style.boxShadow = `0 0 5px rgba(${cfg.r},${cfg.g},${cfg.b},${0.6 * bScale})`;
         });
         return;
       }
-      if (cfg.mode === 1) {
-        // Aangepast naar 0.007 i.p.v. 0.05 zodat de visualizer exact gelijk loopt
+      if (cfg.mode === 1) { // Rainbow
         const offset = (now * (cfg.speed * 0.007)) % 256;
         for (let i = 0; i < 60; i++) {
           const hue = Math.floor(i * 256 / 60 + offset) & 0xFF;
@@ -516,11 +516,10 @@
         }
         return;
       }
-      if (cfg.mode === 2) {
+      if (cfg.mode === 2) { // Strepen
         ledArray.forEach(el => { el.style.background = "#000"; el.style.boxShadow = "none"; });
         const head = ((now * (cfg.speed * 0.002)) % (60 + cfg.tail));
         const headIdx = 59 - Math.floor(head) + cfg.tail;
-
         for (let t = 0; t < cfg.tail; t++) {
           const idx = headIdx + t;
           if (idx >= 0 && idx < 60) {
@@ -529,18 +528,60 @@
             ledArray[idx].style.boxShadow = `0 0 6px rgba(${cfg.r},${cfg.g},${cfg.b},${fade})`;
           }
         }
+        return;
+      }
+      if (cfg.mode === 4) { // 7-Color Jump
+        const interval = 1500 - ((cfg.speed - 5) / 95) * 1400;
+        const idx = Math.floor(now / interval) % 7;
+        const [r, g, b] = PALETTE_7[idx];
+        const col = `rgb(${r * bScale},${g * bScale},${b * bScale})`;
+        ledArray.forEach(el => {
+          el.style.background = col;
+          el.style.boxShadow = `0 0 6px rgba(${r},${g},${b},${0.6 * bScale})`;
+        });
+        return;
+      }
+      if (cfg.mode === 5) { // 7-Color Fade
+        const dur = 14000 - ((cfg.speed - 5) / 95) * 12500;
+        const progress = ((now % dur) / dur) * 7.0;
+        const curIdx = Math.floor(progress);
+        const nextIdx = (curIdx + 1) % 7;
+        const f = progress - curIdx;
+        const r = (PALETTE_7[curIdx][0] * (1 - f) + PALETTE_7[nextIdx][0] * f) * bScale;
+        const g = (PALETTE_7[curIdx][1] * (1 - f) + PALETTE_7[nextIdx][1] * f) * bScale;
+        const b = (PALETTE_7[curIdx][2] * (1 - f) + PALETTE_7[nextIdx][2] * f) * bScale;
+        const col = `rgb(${r},${g},${b})`;
+        ledArray.forEach(el => {
+          el.style.background = col;
+          el.style.boxShadow = `0 0 6px rgba(${r},${g},${b},0.6)`;
+        });
+        return;
+      }
+      if (cfg.mode === 6) { // Snowfall / Twinkle
+        if (Math.random() * (105 - cfg.speed) < 6) {
+          const p = Math.floor(Math.random() * 60);
+          sparkles[p] = 255;
+        }
+        for (let i = 0; i < 60; i++) {
+          if (sparkles[i] > 10) sparkles[i] -= 10;
+          else sparkles[i] = 0;
+          const val = sparkles[i] * bScale;
+          ledArray[i].style.background = `rgb(${val},${val},${val})`;
+          ledArray[i].style.boxShadow = sparkles[i] > 20 ? `0 0 6px rgba(255,255,255,${val / 255})` : "none";
+        }
+        return;
       }
     }
 
     function animate() {
       const now = performance.now();
-      renderVirtual(ledsL, sideL, now);
-      renderVirtual(ledsR, sideR, now);
+      renderVirtual(ledsL, sideL, vSparkL, now);
+      renderVirtual(ledsR, sideR, vSparkR, now);
       requestAnimationFrame(animate);
     }
     requestAnimationFrame(animate);
 
-    /* --- BLE --- */
+    /* BLE */
     async function connectBLE() {
       try {
         const device = await navigator.bluetooth.requestDevice({
@@ -550,7 +591,6 @@
         const server = await device.gatt.connect();
         const service = await server.getPrimaryService(SERVICE_UUID);
         ledChar = await service.getCharacteristic(CHAR_UUID);
-
         document.getElementById("bleBtn").classList.add("connected");
         document.getElementById("bleStatus").innerText = "Verbonden";
         triggerSync();
