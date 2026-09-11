@@ -50,7 +50,7 @@
     .dot { width: 7px; height: 7px; border-radius: 50%; background: #ea4335; }
     .connected .dot { background: #3fb950; }
 
-    /* Visualizer - 20% verkleind */
+    /* Visualizer */
     .stage {
       display: flex;
       justify-content: center;
@@ -102,7 +102,7 @@
       box-shadow: 0 0 4px transparent;
     }
 
-    /* Bedientab & panel */
+    /* Controls Panel */
     .panel {
       width: 100%;
       max-width: 380px;
@@ -160,7 +160,7 @@
       background: rgba(0,240,255,0.08);
     }
 
-    /* Color Wheel Container */
+    /* Color Wheel */
     .wheel-section {
       display: flex;
       flex-direction: column;
@@ -172,7 +172,7 @@
       position: relative;
       width: 180px;
       height: 180px;
-      touch-action: none; /* Voorkomt scrollen tijdens draaien */
+      touch-action: none;
     }
     #colorWheel {
       border-radius: 50%;
@@ -257,7 +257,7 @@
       <button class="btn-mode" id="m2" onclick="selectMode(2)">☄️ Strepen</button>
     </div>
 
-    <!-- Color Wheel -->
+    <!-- Color Wheel (verborgen bij Rainbow) -->
     <div class="wheel-section" id="wheelWrapper">
       <div class="wheel-container" id="wheelBox">
         <canvas id="colorWheel" width="180" height="180"></canvas>
@@ -265,22 +265,22 @@
       </div>
     </div>
 
-    <!-- Helderheid Slider -->
+    <!-- Helderheid -->
     <div class="row">
       <span class="label">Helderheid</span>
       <input type="range" id="bright" min="0" max="255" value="150" oninput="triggerSync()">
     </div>
 
-    <!-- Comet Opties -->
-    <div id="cometSettings" style="display: none; flex-direction: column; gap: 8px;">
-      <div class="row">
-        <span class="label">Snelheid</span>
-        <input type="range" id="speed" min="10" max="100" value="50" oninput="triggerSync()">
-      </div>
-      <div class="row">
-        <span class="label">Lengte</span>
-        <input type="range" id="tail" min="4" max="30" value="14" oninput="triggerSync()">
-      </div>
+    <!-- Snelheid (zichtbaar bij Rainbow én Strepen) -->
+    <div class="row" id="speedRow" style="display: none;">
+      <span class="label">Snelheid</span>
+      <input type="range" id="speed" min="5" max="100" value="50" oninput="triggerSync()">
+    </div>
+
+    <!-- Lengte (alleen bij Strepen) -->
+    <div class="row" id="tailRow" style="display: none;">
+      <span class="label">Lengte</span>
+      <input type="range" id="tail" min="4" max="30" value="14" oninput="triggerSync()">
     </div>
 
     <button class="btn-off" onclick="turnOff()">Leds Uitschakelen</button>
@@ -291,7 +291,6 @@
     const CHAR_UUID    = "beb5483e-36e1-4688-b7f5-ea07361b26a8";
     let ledChar = null;
 
-    // DOM Leds genereren
     const stripLEl = document.getElementById("stripL");
     const stripREl = document.getElementById("stripR");
     const ledsL = [], ledsR = [];
@@ -308,14 +307,13 @@
       ledsR.push(dR);
     }
 
-    // State per zijde
     let currentTarget = 0; // 0=Clone, 1=Left, 2=Right
     let sideL = { mode: 0, r: 0, g: 240, b: 255, speed: 50, tail: 14 };
     let sideR = { mode: 0, r: 0, g: 240, b: 255, speed: 50, tail: 14 };
     let brightness = 150;
     let currentColor = { r: 0, g: 240, b: 255 };
 
-    /* --- CANVAS COLOR WHEEL IMPLEMENTATIE --- */
+    /* --- COLOR WHEEL --- */
     const canvas = document.getElementById("colorWheel");
     const ctx = canvas.getContext("2d");
     const cursor = document.getElementById("wheelCursor");
@@ -342,7 +340,7 @@
             data[index + 2] = b;
             data[index + 3] = 255;
           } else {
-            data[index + 3] = 0; // Transparant buiten de cirkel
+            data[index + 3] = 0;
           }
         }
       }
@@ -380,18 +378,15 @@
       let dy = clientY - (rect.top + radius);
       let dist = Math.sqrt(dx * dx + dy * dy);
 
-      // Klem positie vast binnen de cirkel
       if (dist > radius) {
         dx = (dx / dist) * radius;
         dy = (dy / dist) * radius;
         dist = radius;
       }
 
-      // Cursor bijwerken
       cursor.style.left = `${radius + dx}px`;
       cursor.style.top  = `${radius + dy}px`;
 
-      // Kleur bepalen
       let angle = Math.atan2(dy, dx) * (180 / Math.PI) + 90;
       if (angle < 0) angle += 360;
       const sat = dist / radius;
@@ -402,7 +397,6 @@
       triggerSync();
     }
 
-    // Touch & muis events voor het color wheel
     let isDragging = false;
     const wheelBox = document.getElementById("wheelBox");
 
@@ -420,7 +414,7 @@
 
     drawColorWheel();
 
-    /* --- BEDIENING & EFFECTEN LOGICA --- */
+    /* --- BEDIENING --- */
     function setTarget(t) {
       currentTarget = t;
       document.getElementById("tabClone").classList.toggle("active", t === 0);
@@ -437,9 +431,16 @@
 
     function selectMode(m, shouldSync = true) {
       [0, 1, 2].forEach(i => document.getElementById(`m${i}`).classList.toggle("active", i === m));
-      document.getElementById("cometSettings").style.display = (m === 2) ? "flex" : "none";
-      // Verberg color wheel alleen bij Rainbow
+      
+      // Kleurenwiel verbergen bij Rainbow
       document.getElementById("wheelWrapper").style.display = (m === 1) ? "none" : "flex";
+      
+      // Snelheid zichtbaar bij Rainbow én Strepen
+      document.getElementById("speedRow").style.display = (m === 1 || m === 2) ? "flex" : "none";
+      
+      // Lengte alleen bij Strepen
+      document.getElementById("tailRow").style.display = (m === 2) ? "flex" : "none";
+
       if (shouldSync) triggerSync(m);
     }
 
@@ -447,13 +448,12 @@
       triggerSync(3);
     }
 
-    // Throttling zodat snelle touch-events de Bluetooth-verbinding niet vloeden
     let lastSend = 0;
     let syncTimeout = null;
 
     function triggerSync(overrideMode = null) {
       const now = Date.now();
-      if (now - lastSend > 50) { // Max 20 BLE-commando's per seconde
+      if (now - lastSend > 50) {
         lastSend = now;
         executeSync(overrideMode);
       } else {
@@ -483,12 +483,11 @@
       sendBLE(active.mode, active.r, active.g, active.b, brightness, active.speed, active.tail, currentTarget);
     }
 
-    /* --- REALISTISCHE RENDER LUS --- */
-    function wheel(pos) {
-      pos = 255 - pos;
-      if (pos < 85) return [255 - pos * 3, 0, pos * 3];
-      if (pos < 170) { pos -= 85; return [0, pos * 3, 255 - pos * 3]; }
-      pos -= 170; return [pos * 3, 255 - pos * 3, 0];
+    /* --- VIRTUELE VISUALIZER --- */
+    function wheelVirtual(pos) {
+      if (pos < 85) return [pos * 3, 255 - pos * 3, 0];
+      if (pos < 170) { pos -= 85; return [255 - pos * 3, 0, pos * 3]; }
+      pos -= 170; return [0, pos * 3, 255 - pos * 3];
     }
 
     function renderVirtual(ledArray, cfg, now) {
@@ -507,10 +506,10 @@
         return;
       }
       if (cfg.mode === 1) {
-        const offset = (now * cfg.speed * 0.01) % 256;
+        const offset = (now * (cfg.speed * 0.05)) % 256;
         for (let i = 0; i < 60; i++) {
           const hue = Math.floor(i * 256 / 60 + offset) & 0xFF;
-          const [r, g, b] = wheel(hue);
+          const [r, g, b] = wheelVirtual(hue);
           ledArray[i].style.background = `rgb(${r * bScale},${g * bScale},${b * bScale})`;
           ledArray[i].style.boxShadow = `0 0 4px rgba(${r},${g},${b},${0.5 * bScale})`;
         }
@@ -540,7 +539,7 @@
     }
     requestAnimationFrame(animate);
 
-    /* --- BLUETOOTH LOW ENERGY --- */
+    /* --- BLE --- */
     async function connectBLE() {
       try {
         const device = await navigator.bluetooth.requestDevice({
